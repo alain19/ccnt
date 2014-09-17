@@ -34,6 +34,7 @@ void dying_logoff(int sig)
     if(client!=nullptr)
     {
         client->logoff();
+		delete client;
     }
     raise(SIGINT);
 }
