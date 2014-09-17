@@ -21,9 +21,23 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <signal.h>
 #include "dcclient.h"
 #include "md5.h"
 using namespace std;
+
+namespace{
+EAPClient *client=nullptr;
+void dying_logoff(int sig)
+{
+    if(sig!=SIGINT){ return; }
+    if(client!=nullptr)
+    {
+        client->logoff();
+    }
+    raise(SIGINT);
+}
+}
 
 int main()
 {
@@ -55,15 +69,15 @@ int main()
     MD5 _md5_;
     md5_str2bytes(_md5_(username),dtailer.usr_md5);
 
-	//运行客户端，无法正常退出，除非认证失败
-	/**TODO 打断程序后能发送logoff包（需监听操作信号）*/
-    DCClient client(username,password,pdev,dtailer);
+    //监听信号，退出时发送Logoff包
+    signal(SIGINT,dying_logoff);
+    //开始客户端认证
+	client=new DCClient(username,password,pdev,dtailer);
     cout<<"client new done\n";
-    client.init_packets(devs[num].mac);
+    dynamic_cast<DCClient*>(client)->init_packets(devs[num].mac);
     cout<<"client init_packets done\n";
-    client.start();
+    client->start();
     cout<<"client start done\n";
-    client.packet_loop();
-    //client.logoff();
+    client->packet_loop();
     return 0;
 }
