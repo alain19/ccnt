@@ -17,3 +17,7 @@
 *.exe
 *.out
 *.app
+
+# Codeblocks layout and depend
+*.layout
+*.depend

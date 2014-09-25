@@ -63,7 +63,7 @@ int main()
     dc_tailer dtailer={1,{0},{0},{0},{0},{0},{0}};
     if(!get_pcap_device(devs[num].name,&pdev,&dtailer))
     {
-        cout<<"ERROR in get_pcap_device!"<<endl;
+        cout<<"*ERROR in get_pcap_device!"<<endl;
         return 0;
     }
     memcpy(&dtailer.client_ver,global::CLIENT_VER,global::DC_VER_LEN);
@@ -74,11 +74,10 @@ int main()
     signal(SIGINT,dying_logoff);
     //开始客户端认证
 	client=new DCClient(username,password,pdev,dtailer);
-    cout<<"client new done\n";
     dynamic_cast<DCClient*>(client)->init_packets(devs[num].mac);
-    cout<<"client init_packets done\n";
+
+    cout<<"############ Start Authentication ############\n";
     client->start();
-    cout<<"client start done\n";
     client->packet_loop();
     return 0;
 }

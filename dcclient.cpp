@@ -117,18 +117,20 @@ void DCClient::start()
 {
 	if (pcap_sendpacket(pcap_dev,start_packet,start_length) !=0)
     {
-        std::cerr<<"ERROR! Sending EAPOL-Start: "<<pcap_geterr(pcap_dev)<<std::endl;
+        std::cerr<<"*ERROR! Sending EAPOL-Start: "<<pcap_geterr(pcap_dev)<<std::endl;
 		return;
     }
+    std::cerr<<"EAPOL-Start...\n";
 }
 
 void DCClient::logoff()
 {
 	if (pcap_sendpacket(pcap_dev,logoff_packet,logoff_length) !=0)
     {
-        std::cerr<<"ERROR! Sending EAPOL-Logoff: "<<pcap_geterr(pcap_dev)<<std::endl;
+        std::cerr<<"*ERROR! Sending EAPOL-Logoff: "<<pcap_geterr(pcap_dev)<<std::endl;
 		return;
     }
+    std::cerr<<"EAPOL-Logoff...\n";
 }
 
 void DCClient::packet_loop()
@@ -179,7 +181,7 @@ bool DCClient::packet_handler(const uint8_t *pkt_data)
             {
                 //there are some magic numbers...
                 const char *str=reinterpret_cast<const char*>(pkt_data+0x120);
-                std::cerr<<"Success:"<<string(str+2,*(str+1)-2)<<std::endl;
+                std::cerr<<"EAPOL-Success:"<<string(str+2,*(str+1)-2)<<std::endl;
             }break;
         case eap_code::Failure:
             {
@@ -189,24 +191,24 @@ bool DCClient::packet_handler(const uint8_t *pkt_data)
                 {
                     str+=8+16;
                 }
-                std::cerr<<"Failure:"<<string(str+2,*(str+1)-2)<<std::endl;
+                std::cerr<<"EAPOL-Failure:"<<string(str+2,*(str+1)-2)<<std::endl;
                 return false;
             }break;
         case eap_code::Request:
             {
-                std::cerr<<"Response ";
+                std::cerr<<"EAPOL-Response ";
                 eap_type pkt_type=static_cast<eap_type>(h2p->type);
                 switch(pkt_type)
                 {
                     case eap_type::Identify://send response_packet[1]
                         {
-                            std::cerr<<"Identify\n";
+                            std::cerr<<"Identify...\n";
                             reinterpret_cast<eap_header*>(response_packet[1]+sizeof(ether_header)+sizeof(eapol_header))->id=h2p->id;
                             pcap_sendpacket(pcap_dev,response_packet[1],response_length[1]);
                         }break;
                     case eap_type::MD5_Challenge://send response_packet[2]
                         {
-                            std::cerr<<"MD5_Challenge\n";
+                            std::cerr<<"MD5_Challenge...\n";
                             reinterpret_cast<eap_header*>(response_packet[2]+sizeof(ether_header)+sizeof(eapol_header))->id=h2p->id;
                             md5_header *h3p=reinterpret_cast<md5_header*>(response_packet[2]+sizeof(ether_header)+sizeof(eapol_header)+sizeof(eap_header));
                             calc_md5_challenge(h2p->id,pkt_data+header_offset+1,h3p->val);
@@ -214,7 +216,7 @@ bool DCClient::packet_handler(const uint8_t *pkt_data)
                         }break;
                     case eap_type::Keep_Alive://send response_packet[0]
                         {
-                            std::cerr<<"Keep_Alive\n";
+                            std::cerr<<"Keep_Alive...\n";
                             reinterpret_cast<eap_header*>(response_packet[0]+sizeof(ether_header)+sizeof(eapol_header))->id=h2p->id;
                             uint8_t *md5p=response_packet[0]+sizeof(ether_header)+sizeof(eapol_header)+sizeof(eap_header);
                             calc_md5_keepalive(pkt_data+header_offset,md5p);

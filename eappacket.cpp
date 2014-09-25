@@ -28,7 +28,7 @@ vector<device_info> get_all_devices()
 vector<device_info> results;
 
 #ifdef WIN32
-	/*using windows api GetAdaptersAddresses, see 
+	/*using windows api GetAdaptersAddresses, see
 	  http://msdn.microsoft.com/en-us/library/windows/desktop/aa365915%28v=vs.85%29.aspx */
     char *addr_buf=new char[global::ETH_PKT_LEN<<1];
     PIP_ADAPTER_ADDRESSES p_adp_addrs=nullptr;
@@ -105,7 +105,7 @@ bool get_pcap_device(const string& devname, pcap_t **pdev, dc_tailer *dtailer)
     char errbuf[PCAP_ERRBUF_SIZE];
     if (pcap_findalldevs(&alldevs,errbuf) == -1)
     {
-        std::cerr<<"Error in pcap_findalldevs: "<<errbuf<<std::endl;
+        std::cerr<<"*Error in pcap_findalldevs: "<<errbuf<<std::endl;
         return false;
     }
     for(auto d=alldevs;d!=NULL;d=d->next)
@@ -115,7 +115,7 @@ bool get_pcap_device(const string& devname, pcap_t **pdev, dc_tailer *dtailer)
         {
             if((*pdev=pcap_open_live(d->name,global::ETH_PKT_LEN,0,1000,errbuf))==NULL)
             {
-                std::cerr<<"Error in pcap_open: "<<errbuf<<std::endl;
+                std::cerr<<"*Error in pcap_open: "<<errbuf<<std::endl;
                 pcap_freealldevs(alldevs);
                 return false;
             }
@@ -137,12 +137,12 @@ bool get_pcap_device(const string& devname, pcap_t **pdev, dc_tailer *dtailer)
     struct bpf_program fcode;
     if(pcap_compile(*pdev,&fcode,"ether proto 0x888e",1,0)<0)
     {
-        std::cerr<<"Error in pcap_compile: "<<pcap_geterr(*pdev)<<std::endl;
+        std::cerr<<"*Error in pcap_compile: "<<pcap_geterr(*pdev)<<std::endl;
     }else
     {
         if (pcap_setfilter(*pdev,&fcode)<0)
         {
-            std::cerr<<"Error in pcap_setfilter: "<<pcap_geterr(*pdev)<<std::endl;
+            std::cerr<<"*Error in pcap_setfilter: "<<pcap_geterr(*pdev)<<std::endl;
         }
     }
     return true;
