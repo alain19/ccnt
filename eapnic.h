@@ -1,5 +1,5 @@
 /*
-  eapclient.h: eap protocol client prototype
+  eapnic.h: nic related parts, depends on os
   Copyright (C) 2014 C.C.<exiledkingcc@gmail.com>
 
   This file is part of ccnt.
@@ -17,39 +17,33 @@
   You should have received a copy of the GNU General Public License
   along with ccnt.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #pragma once
 
-#include "eapbase.h"
+#include <cstdint>
+#include <string>
+#include <vector>
+
 #include "eaperror.h"
-#include "eapoption.h"
-#include <pcap.h>
 
-class EAPClient
+using std::uint8_t;
+using std::uint32_t;
+using std::string;
+
+struct nic
 {
-public:
-	EAPClient(EAPOption *opt,pcap_t *pdev);
-	virtual ~EAPClient();
+    string _name;
+    string _desc;
+    uint32_t _ip;
+    uint32_t _mask;
+    uint32_t _gateway;
+    uint32_t _dns;
+    uint8_t _mac[6];
+    bool _dhcp;
 
-	EAPClient(const EAPClient&) = delete;
-	EAPClient& operator=(const EAPClient&) = delete;
-
-    virtual void prepare(){}
-	virtual void start() throw(eap_runtime_error);
-	virtual void logoff() throw(eap_runtime_error);
-	virtual void packet_loop() throw(eap_error);
-
-protected:
-    virtual void packet_handler(const uint8_t *pkt_data){};
-
-protected:
-	EAPOption *_option;
-	pcap_t *_pcapdev;
-	uint8_t *_start_packet;
-	uint8_t *_logoff_packet;
-	uint8_t *_response_packet[3];
-	int _start_length;
-	int _logoff_length;
-	int _response_length[3];
+    nic(const string n,const string d):_name(n),_desc(d),
+        _ip(0),_mask(0),_gateway(0),_dns(0),_mac{0},_dhcp(true){}
 };
+
+const std::vector<nic> get_nics() throw(eap_runtime_error);
+
 

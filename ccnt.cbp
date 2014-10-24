@@ -4,13 +4,13 @@
 	<Project>
 		<Option title="ccnt" />
 		<Option pch_mode="2" />
-		<Option compiler="gcc" />
+		<Option compiler="tdm-gcc-64" />
 		<Build>
 			<Target title="Debug">
 				<Option output="bin/Debug/ccnt" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="tdm-gcc-64" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -19,26 +19,45 @@
 				<Option output="bin/Release/ccnt" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="tdm-gcc-64" />
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Iwpcap/include" />
+			<Add option="-m32" />
 			<Add option="-DWIN32" />
-			<Add option="-DWINVER=0x0501" />
+			<Add directory="../../../Code/boost_1_56_0" />
+			<Add directory="./wpcap/include" />
 		</Compiler>
 		<Linker>
+			<Add option="-m32" />
 			<Add option="-liphlpapi" />
-			<Add library="wpcap\lib\libwpcap.a" />
+			<Add option="-lwpcap" />
+			<Add option="-lboost_regex-mgw48-1_56" />
+			<Add option="-lboost_program_options-mgw48-1_56" />
+			<Add option="-lboost_test_exec_monitor-mgw48-1_56" />
+			<Add directory="wpcap/lib" />
+			<Add directory="../../../Code/boost_1_56_0/lib/lib32" />
 		</Linker>
-		<Unit filename="dcclient.cpp" />
-		<Unit filename="dcclient.h" />
+		<Unit filename="digitalchina.cpp" />
+		<Unit filename="digitalchina.h" />
+		<Unit filename="eapbase.h" />
+		<Unit filename="eapclient.cpp" />
 		<Unit filename="eapclient.h" />
-		<Unit filename="eappacket.cpp" />
-		<Unit filename="eappacket.h" />
+		<Unit filename="eapcommon.cpp" />
+		<Unit filename="eapcommon.h" />
+		<Unit filename="eapconfig.cpp" />
+		<Unit filename="eapconfig.h" />
+		<Unit filename="eaperror.h" />
+		<Unit filename="eapnic.h" />
+		<Unit filename="eapoption.cpp" />
+		<Unit filename="eapoption.h" />
+		<Unit filename="eaptest.cpp" />
+		<Unit filename="eaputility.cpp" />
+		<Unit filename="eaputility.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="md5.cpp" />
 		<Unit filename="md5.h" />
+		<Unit filename="port_win32.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

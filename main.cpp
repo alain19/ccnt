@@ -1,6 +1,6 @@
 /*
   main.cpp
-  Copyright (C) 2014 Cheng Chang<exiledkingcc@gmail.com>
+  Copyright (C) 2014 C.C.<exiledkingcc@gmail.com>
 
   This file is part of ccnt.
 
@@ -19,65 +19,161 @@
 */
 
 #include <iostream>
-#include <sstream>
-#include <string>
-#include <signal.h>
-#include "dcclient.h"
-#include "md5.h"
+#include <fstream>
+
+#include <boost/program_options.hpp>
+
+#include "eapconfig.h"
+#include "eaputility.h"
+#include "eapcommon.h"
+
 using namespace std;
+namespace po=boost::program_options;
 
 namespace{
-EAPClient *client=nullptr;
-void dying_logoff(int sig)
-{
-    if(sig!=SIGINT){ return; }
-    if(client!=nullptr)
+
+    const char *exist_file="ccnt_already_exists";
+
+    fstream fs;
+    EAPClient *client=nullptr;
+    void die()
     {
-        client->logoff();
-		delete client;
+        if(client)
+        {
+            client->logoff();
+            delete client;
+        }
+        fs.close();
+        remove(exist_file);
     }
-    raise(SIGINT);
-}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-	//获取设备信息、用户名、密码等
-    auto devs=get_all_devices();
-    for(size_t i=0;i<devs.size();++i)
+    fs.open(exist_file,ios_base::in);
+    if(fs.good())
     {
-        cout<<i<<": "<<devs[i].desc<<endl;
-        //print_mac_addr(devs[i].mac);
-    }
-    int num=0;
-    cout<<"please choose the number:";
-    cin>>num;
-    string username,password;
-    cout<<"please input the username:";
-    cin>>username;
-    cout<<"please choose the password:";
-    cin>>password;
-
-	//获取网卡pcap_t指针，填充dc_tailer字段
-    pcap_t *pdev;
-    dc_tailer dtailer={1,{0},{0},{0},{0},{0},{0}};
-    if(!get_pcap_device(devs[num].name,&pdev,&dtailer))
-    {
-        cout<<"*ERROR in get_pcap_device!"<<endl;
+        fs.close();
+        cout<<"ERROR: ccnt is already running...!"<<endl;
         return 0;
+    }else{
+        fs.open(exist_file,ios_base::out);
+        atexit(die);
     }
-    memcpy(&dtailer.client_ver,global::CLIENT_VER,global::DC_VER_LEN);
-    MD5 _md5_;
-    md5_str2bytes(_md5_(username),dtailer.usr_md5);
 
-    //监听信号，退出时发送Logoff包
-    signal(SIGINT,dying_logoff);
-    //开始客户端认证
-	client=new DCClient(username,password,pdev,dtailer);
-    dynamic_cast<DCClient*>(client)->init_packets(devs[num].mac);
+    po::options_description general_po("General options");
+    general_po.add_options()
+        ("help,h","produce a help message")
+        ("version,v","output the version")
+        ("init","initialize the configure, save int the configure file, ignore other arguments")
+        ("once","apply the configure only once, do not save in the configure file")
+        ;
 
-    cout<<"############ Start Authentication ############\n";
-    client->start();
-    client->packet_loop();
+    po::options_description client_po("Client options");
+    client_po.add_options()
+        ("mode,m",po::value<int>(),"client mode, 0 for Standard(default), 1 for DigitalChina")
+        ("user,u",po::value<string>(),"user name")
+        ("passwd,p",po::value<string>(),"password")
+        ("nic",po::value<string>(),"network interface card name")
+        ;
+
+    po::options_description net_po("Network options");
+    net_po.add_options()
+        ("dhcp","turn dhcp on")
+        ("ip",po::value<string>(),"ip address, using x.x.x.x dec format, not needed if dhcp is on, the same below")
+        ("mask",po::value<string>(),"ip mask, x.x.x.x")
+        ("gateway",po::value<string>(),"gateway address, x.x.x.x")
+        ("dns",po::value<string>(),"dns address, x.x.x.x")
+        ("mac",po::value<string>(),"mac address, using x:x:x:x:x:x hex format, not needed if using local nic address")
+        ("cast",po::value<string>(),"broadcast address, x:x:x:x:x:x")
+        ;
+
+    po::options_description all;
+    all.add(general_po).add(client_po).add(net_po);
+    po::variables_map vm;
+    try{
+        po::store(po::parse_command_line(argc,argv,all), vm);
+    }catch(po::unknown_option &e)
+    {
+        cout<<e.what()<<endl<<"please try --help..."<<endl;
+        exit(0);
+    }
+
+    if(vm.count("help")) { cout<<"Usage: ccnt [options] args\n"<<all<<"\nBug report: cc<exiledkingcc@gmail.com>"<<endl; exit(0); }
+    if(vm.count("version")) { cout<<"ccnt version "<<CCNT_VERSION<<endl<<"Copyright (C) 2014 cc<exiledkingcc@gmail.com>"<<endl; exit(0); }
+
+    EAPOption eap_option;
+    eap_option.cast(eap::eap_multicast);
+    if(vm.count("init"))
+    {
+        try{
+            init_config(&eap_option);
+        }catch(eap_error &e)
+        {
+            cout<<e.what()<<endl<<"please check the input and try again..."<<endl;
+            exit(0);
+        }
+        save_config(&eap_option);
+    }
+    else
+    {
+        try{
+            read_config(&eap_option);
+        }catch(eap_error &e)
+        {
+            cout<<e.what()<<endl<<"please make sure no error in the configure file..."<<endl;
+            exit(0);
+        }
+
+        bool save_cfg=true;
+        uint8_t x[6]={0};
+
+        try{
+            if(vm.count("once")) { save_cfg=false; }
+            if(vm.count("dhcp")) { eap_option.dhcp(true); }
+
+            if(vm.count("mode")) { eap_option.mode(static_cast<eap_mode>(vm["mode"].as<int>())); }
+            if(vm.count("nic")) { eap_option.nic(vm["nic"].as<string>()); }
+
+            if(vm.count("ip")) { eap_option.ip(str2net(vm["ip"].as<string>())); }
+            if(vm.count("mask")) { eap_option.mask(str2net(vm["mask"].as<string>())); }
+            if(vm.count("gateway")) { eap_option.gateway(str2net(vm["gateway"].as<string>())); }
+            if(vm.count("dns")) { eap_option.dns(str2net(vm["dns"].as<string>())); }
+            if(vm.count("mac")) { eap_option.mac(str2mac(vm["mac"].as<string>(),x)); }
+            if(vm.count("cast")) { eap_option.cast(str2mac(vm["cast"].as<string>(),x)); }
+
+            if(vm.count("user")) { eap_option.username(vm["user"].as<string>()); }
+            if(vm.count("passwd")) { eap_option.password(vm["passwd"].as<string>()); }
+        }catch(std::exception &e)
+        {
+            cout<<e.what()<<endl<<"please make check the options..."<<endl;
+            exit(0);
+        }
+
+        if(save_cfg) { save_config(&eap_option); }
+    }
+    show_config(&eap_option);
+
+    pcap_t *pdev=nullptr;
+    try{
+        get_pcap_device(eap_option.nic(),&pdev);
+    }catch(eap_error &e)
+    {
+        cout<<e.what()<<endl<<"please try again ..."<<endl;
+        exit(0);
+    }
+
+    client=make_client(&eap_option,pdev);
+    client->prepare();
+    try{
+        client->start();
+        client->packet_loop();
+    }catch(eap_error &e)
+    {
+        cout<<e.what()<<endl;
+        exit(0);
+    }
+
     return 0;
+
 }
