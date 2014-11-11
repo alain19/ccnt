@@ -40,7 +40,7 @@ public:
 	virtual void packet_loop() throw(eap_error);
 
 protected:
-    virtual void packet_handler(const uint8_t *pkt_data){};
+    virtual void packet_handler(const uint8_t*){};
 
 protected:
 	EAPOption *_option;

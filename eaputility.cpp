@@ -57,7 +57,7 @@ const string mac2str(const uint8_t mac[6])
 }
 
 
-const uint32_t str2net(const string &str)
+uint32_t str2net(const string &str)
 {
     uint32_t t=0;
     uint8_t *p=reinterpret_cast<uint8_t *>(&t);

@@ -62,10 +62,10 @@ public:
     const string& password() const { return _password; }
     const string& nic() const { return _nic; }
 
-    const uint32_t ip() const { return _ip; }
-    const uint32_t mask() const { return _mask; }
-    const uint32_t gateway() const { return _gateway; }
-    const uint32_t dns() const { return _dns; }
+    uint32_t ip() const { return _ip; }
+    uint32_t mask() const { return _mask; }
+    uint32_t gateway() const { return _gateway; }
+    uint32_t dns() const { return _dns; }
     const uint8_t* mac() const { return _mac; }
     const uint8_t* cast() const { return _cast; }
 

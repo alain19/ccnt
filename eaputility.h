@@ -32,7 +32,7 @@ const string net2str(const uint32_t net);
 const string net2str(const uint8_t net[4]);
 const string mac2str(const uint8_t mac[6]);
 
-const uint32_t str2net(const string &str);
+uint32_t str2net(const string &str);
 const uint8_t* str2net(const string &str,uint8_t net[4]);
 const uint8_t* str2mac(const string &str,uint8_t mac[6]);
 

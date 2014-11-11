@@ -47,7 +47,7 @@ void init_config(EAPOption *option) throw(eap_runtime_error,eap_logic_error)
         //network configure...
         cout<<">>"<<++index<<". choose the network interface card:"<<endl;
         auto nics=get_nics();
-        for(int i=0; i<nics.size(); ++i)
+        for(size_t i=0; i<nics.size(); ++i)
         {
             cout<<"\t("<<i<<")"<<nics[i]._desc<<endl;
         }

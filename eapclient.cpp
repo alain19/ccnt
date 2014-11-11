@@ -21,8 +21,8 @@
 #include "eapclient.h"
 
 EAPClient::EAPClient(EAPOption *opt,pcap_t *pdev):_option(opt),_pcapdev(pdev),
-            _start_length(0),_logoff_length(0),_response_length{0,0,0},
-            _start_packet(nullptr),_logoff_packet(nullptr),_response_packet{nullptr,nullptr,nullptr}
+            _start_packet(nullptr),_logoff_packet(nullptr),_response_packet{nullptr,nullptr,nullptr},
+			_start_length(0),_logoff_length(0),_response_length{0,0,0}
 {}
 
 EAPClient::~EAPClient()

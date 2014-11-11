@@ -2,11 +2,13 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra
 
-main = main.o eappacket.o md5.o
-client = dcclient.o
+eap = eapclient.o eapcommon.o eapconfig.o eapoption.o eaputility.o
+main = main.o md5.o port_linux.o
+client = digitalchina.o
+libs = -lpcap -lboost_regex -lboost_program_options
 
-ccnt : $(main) $(client) $(libs)
-	$(CXX) $(CXXFLAGS) -o ccnt -lpcap $(main) $(client)
+ccnt : $(eap) $(main) $(client)
+	$(CXX) $(CXXFLAGS) -o ccnt $(eap) $(main) $(client) $(libs)
 
 .PHONY:clean
 clean:
