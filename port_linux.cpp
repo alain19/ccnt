@@ -22,17 +22,22 @@
 #error "only for linux implements"
 #endif
 
-#include <cstring>
-using std::strcpy;
-using std::memcpy;
-
-#include "eapnic.h"
-
 #include <unistd.h>
 #include <net/if.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+
+#include <cstring>
+using std::strcpy;
+using std::memcpy;
+
+#include "eapnic.h"
+#include "eaputility.h"
 
 const std::vector<nic> get_nics() throw(eap_runtime_error)
 {
@@ -78,4 +83,15 @@ const std::vector<nic> get_nics() throw(eap_runtime_error)
     if_freenameindex(devs);
 	close(fd);
     return all_nics;
+}
+
+bool enter_running()
+{
+	sem_t *sem_ccnt = sem_open(SEM_CCNT_NAME, O_CREAT|O_EXCL, 0644, 1);
+    return sem_ccnt == SEM_FAILED ? false : true;
+}
+
+void leave_running()
+{
+	sem_unlink(SEM_CCNT_NAME);
 }

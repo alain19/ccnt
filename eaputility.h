@@ -43,3 +43,6 @@ void do_md5(const void* data, size_t num, uint8_t md5bytes[]);
 
 void get_pcap_device(const string& devname, pcap_t **pdev) throw(eap_runtime_error);
 
+#define SEM_CCNT_NAME "ccnt_already_running"
+bool enter_running();
+void leave_running();

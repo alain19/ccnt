@@ -22,6 +22,7 @@
 #include <fstream>
 
 #include <boost/program_options.hpp>
+#include <signal.h>
 
 #include "eapconfig.h"
 #include "eaputility.h"
@@ -30,36 +31,19 @@
 using namespace std;
 namespace po=boost::program_options;
 
-namespace{
-
-    const char *exist_file="ccnt_already_exists";
-
-    fstream fs;
-    EAPClient *client=nullptr;
-    void die()
-    {
-        if(client)
-        {
-            client->logoff();
-            delete client;
-        }
-        fs.close();
-        remove(exist_file);
-    }
-}
-
 int main(int argc, char *argv[])
 {
-    fs.open(exist_file,ios_base::in);
-    if(fs.good())
-    {
-        fs.close();
-        cout<<"ERROR: ccnt is already running...!"<<endl;
-        return 0;
-    }else{
-        fs.open(exist_file,ios_base::out);
-        atexit(die);
-    }
+	if(!enter_running())
+	{
+		cout<<"ccnt is already running!"<<endl;
+		return 0;
+	}else
+	{
+		atexit(leave_running);
+		signal(SIGHUP,exit);
+    	signal(SIGINT,exit);
+    	signal(SIGTERM,exit);
+	}
 
     po::options_description general_po("General options");
     general_po.add_options()
@@ -163,7 +147,7 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    client=make_client(&eap_option,pdev);
+    Client client(&eap_option,pdev);
     client->prepare();
     try{
         client->start();

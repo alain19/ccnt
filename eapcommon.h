@@ -19,6 +19,39 @@
 */
 #pragma once
 
+#include "eapoption.h"
 #include "digitalchina.h"
 
-EAPClient* make_client(EAPOption *option, pcap_t *pdev);
+class Client
+{
+public:
+	Client(EAPOption *option, pcap_t *pdev):_client(nullptr),_good(false)
+	{
+		switch(option->mode())
+    	{
+        	case eap_mode::Standard:
+			{
+				_client=new EAPClient(option,pdev);
+				_good=true;
+			}break;
+        	case eap_mode::DigitalChina:
+			{
+				_client=new DCClient(option,pdev);
+				_good=true;
+			}break;
+		}
+	}
+
+	~Client()
+	{
+		if(_client!=nullptr) { delete _client; }
+	}
+
+	bool good() const { return _good; }
+
+	EAPClient* operator->() { return _client; }
+
+private:
+	EAPClient *_client;
+	bool _good;
+};
