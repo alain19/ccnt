@@ -116,3 +116,16 @@ const std::vector<nic> get_nics() throw(eap_runtime_error)
     delete[] addr_buf;
     return all_nics;
 }
+
+static HANDLE mutex;
+
+bool enter_running()
+{
+    mutex=CreateMutex(NULL,FALSE,"ccnt_already_running");
+    return GetLastError() == ERROR_ALREADY_EXISTS ? false : true;
+}
+
+void leave_running()
+{
+    ReleaseMutex(mutex);
+}

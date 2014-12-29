@@ -38,7 +38,6 @@ EAPClient::~EAPClient()
 	_response_packet[0]=nullptr;
 	_response_packet[1]=nullptr;
 	_response_packet[2]=nullptr;
-	_response_packet[3]=nullptr;
 }
 
 void EAPClient::start() throw(eap_runtime_error)

@@ -40,7 +40,6 @@ int main(int argc, char *argv[])
 	}else
 	{
 		atexit(leave_running);
-		signal(SIGHUP,exit);
     	signal(SIGINT,exit);
     	signal(SIGTERM,exit);
 	}
