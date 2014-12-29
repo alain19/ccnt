@@ -19,7 +19,7 @@
 */
 
 #ifndef WIN32  //WIN32 implementations blow
-#error only for win32 implements
+#error "only for win32 implements"
 #endif // WIN32
 
 #ifndef _WIN32_WINNT

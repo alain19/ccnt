@@ -21,3 +21,5 @@
 # Codeblocks layout and depend
 *.layout
 *.depend
+
+*~
